@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:laboratorio1u2_27843_app/src/data/datasource/product_api_datasource.dart';
+import 'package:laboratorio1u2_27843_app/src/data/datasource/recipe_api_datasource.dart';
 import 'package:laboratorio1u2_27843_app/src/data/repositories/product_repository_impl.dart';
-import 'package:laboratorio1u2_27843_app/src/domain/usecases/create_product_usecase.dart';
-import 'package:laboratorio1u2_27843_app/src/domain/usecases/delete_product_usecase.dart';
-import 'package:laboratorio1u2_27843_app/src/domain/usecases/get_products_usecase.dart';
-import 'package:laboratorio1u2_27843_app/src/domain/usecases/update_product_usecase.dart';
+import 'package:laboratorio1u2_27843_app/src/domain/usecases/create_recipe_usecase.dart';
+import 'package:laboratorio1u2_27843_app/src/domain/usecases/delete_recipe_usecase.dart';
+import 'package:laboratorio1u2_27843_app/src/domain/usecases/get_recipes_usecase.dart';
+import 'package:laboratorio1u2_27843_app/src/domain/usecases/update_recipe_usecase.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/routes/app_routes.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/theme/app_theme.dart';
-import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/product_viewmodel.dart';
+import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/recipe_viewmodel.dart';
 import 'package:provider/provider.dart';
 
-
-
 void main() {
-  final dataSource = ProductApiDatasource();
-  final repository = ProductRepositoryImpl(dataSource);
+  final dataSource = RecipeApiDatasource();
+  final repository = RecipeRepositoryImpl(dataSource);
 
-  final getUsecase = GetProductsUsecase(repository);
-  final createUsecase = CreateProductUsecase(repository);
-  final updateUsecase = UpdateProductUsecase(repository);
-  final deleteUsecase = DeleteProductUsecase(repository);
+  final getUsecase = GetRecipesUseCase(repository);
+  final createUsecase = CreateRecipeUsecase(repository);
+  final updateUsecase = UpdateRecipesUseCase(repository);
+  final deleteUsecase = DeleteRecipeUsecase(repository);
 
   runApp(MyApp(
     getUsecase: getUsecase,
@@ -30,10 +28,10 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  final GetProductsUsecase getUsecase;
-  final CreateProductUsecase createUsecase;
-  final UpdateProductUsecase updateUsecase;
-  final DeleteProductUsecase deleteUsecase;
+  final GetRecipesUseCase getUsecase;
+  final CreateRecipeUsecase createUsecase;
+  final UpdateRecipesUseCase updateUsecase;
+  final DeleteRecipeUsecase deleteUsecase;
 
   const MyApp({
     super.key,
@@ -48,12 +46,12 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => ProductViewModel(
+          create: (_) => RecipeViewmodel(
             getUsecase,
             createUsecase,
             updateUsecase,
             deleteUsecase,
-          )..cargarProductos(),
+          )..cargarRecetas(),
         ),
       ],
       child: MaterialApp(

@@ -1,44 +1,48 @@
-import 'package:laboratorio1u2_27843_app/src/data/datasource/product_api_datasource.dart';
-import 'package:laboratorio1u2_27843_app/src/data/models/product_model.dart';
-import 'package:laboratorio1u2_27843_app/src/domain/entities/product.dart';
-import 'package:laboratorio1u2_27843_app/src/domain/repositories/product_repository.dart';
+import 'package:laboratorio1u2_27843_app/src/data/datasource/recipe_api_datasource.dart';
+import 'package:laboratorio1u2_27843_app/src/data/models/recipe_model.dart';
+import 'package:laboratorio1u2_27843_app/src/domain/entities/recipe.dart';
+import 'package:laboratorio1u2_27843_app/src/domain/repositories/recipe_repository.dart';
 
-class ProductRepositoryImpl implements ProductRepository {
-  final ProductApiDatasource datasource;
+class RecipeRepositoryImpl implements RecipeRepository {
+  final RecipeApiDatasource datasource;
 
-  ProductRepositoryImpl(this.datasource);
+  RecipeRepositoryImpl(this.datasource);
 
   @override
-  Future<List<Product>> getProducts() async {
+  Future<List<Recipe>> getRecipes() async {
     return await datasource.fetchAll();
   }
 
   @override
-  Future<Product> createProduct(Product product) async {
-    final productModel = ProductModel(
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      stock: product.stock,
-      category: product.category,
+  Future<Recipe> createRecipe(Recipe recipe) async {
+    final recipeModel = RecipeModel(
+      id: recipe.id,
+      name: recipe.name,
+      description: recipe.description,
+      country: recipe.country,
+      ingredients: recipe.ingredients,
+      steps: recipe.steps,
     );
-    return await datasource.create(productModel.toJson());
+
+    return await datasource.create(recipeModel.toJson());
   }
 
   @override
-  Future<Product> updateProduct(String id, Product product) async {
-    final productModel = ProductModel(
+  Future<Recipe> updateRecipe(String id, Recipe recipe) async {
+    final recipeModel = RecipeModel(
       id: id,
-      name: product.name,
-      price: product.price,
-      stock: product.stock,
-      category: product.category,
+      name: recipe.name,
+      description: recipe.description,
+      country: recipe.country,
+      ingredients: recipe.ingredients,
+      steps: recipe.steps,
     );
-    return await datasource.update(id, productModel.toJson());
+
+    return await datasource.update(id, recipeModel.toJson());
   }
 
   @override
-  Future<bool> deleteProduct(String id) async {
+  Future<bool> deleteRecipe(String id) async {
     return await datasource.delete(id);
   }
 }
