@@ -8,7 +8,6 @@ class IngredientApiDatasource {
     return 'https://api-recetas-27843-moviles.onrender.com/api/ingredientes';
   }
 
-  // Obtener todos los ingredientes
   Future<List<IngredientModel>> getIngredients() async {
     try {
       final response = await http.get(Uri.parse(baseUrl));
@@ -24,7 +23,6 @@ class IngredientApiDatasource {
     }
   }
 
-  // Crear un ingrediente
   Future<bool> createIngredient(IngredientModel ingredient) async {
     try {
       final response = await http.post(
@@ -44,7 +42,6 @@ class IngredientApiDatasource {
       final response = await http.put(
         Uri.parse('$baseUrl/$id'),
         headers: {'Content-Type': 'application/json'},
-        // Enviamos el objeto JSON sin el ID, ya que el ID va en la URL
         body: json.encode({
           'name': ingredient.name,
           'description': ingredient.description,
@@ -58,7 +55,6 @@ class IngredientApiDatasource {
     }
   }
 
-  // Eliminar un ingrediente
   Future<bool> deleteIngredient(String id) async {
     try {
       final response = await http.delete(Uri.parse('$baseUrl/$id'));

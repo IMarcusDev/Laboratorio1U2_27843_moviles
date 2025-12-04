@@ -18,7 +18,7 @@ class _IngredientsPageState extends State<IngredientsPage> {
     Future.microtask(() => context.read<IngredientViewModel>().loadIngredients());
   }
 
-  // Modificamos el diálogo para aceptar un ingrediente opcional (si es null = CREAR, si existe = EDITAR)
+
   void _showIngredientDialog({Ingredient? ingredientToEdit}) {
     final isEditing = ingredientToEdit != null;
     final nameCtrl = TextEditingController(text: ingredientToEdit?.name ?? '');
@@ -54,10 +54,8 @@ class _IngredientsPageState extends State<IngredientsPage> {
               );
 
               if (isEditing) {
-                // EDITAR
-                context.read<IngredientViewModel>().editIngredient(ingredientToEdit!.id!, ing);
+                context.read<IngredientViewModel>().editIngredient(ingredientToEdit.id!, ing);
               } else {
-                // CREAR
                 context.read<IngredientViewModel>().addIngredient(ing);
               }
               Navigator.pop(ctx);
@@ -78,7 +76,7 @@ class _IngredientsPageState extends State<IngredientsPage> {
         title: const Text("Alacena (Ingredientes)", style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showIngredientDialog(), // Crear nuevo
+        onPressed: () => _showIngredientDialog(),
         backgroundColor: AppColors.accent,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -102,12 +100,12 @@ class _IngredientsPageState extends State<IngredientsPage> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Botón EDITAR
+
                       IconButton(
                         icon: const Icon(Icons.edit_rounded, color: Colors.blue),
                         onPressed: () => _showIngredientDialog(ingredientToEdit: ing),
                       ),
-                      // Botón ELIMINAR
+
                       IconButton(
                         icon: const Icon(Icons.delete_outline, color: Colors.red),
                         onPressed: () => vm.deleteIngredient(ing.id!),

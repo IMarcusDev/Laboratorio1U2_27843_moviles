@@ -1,11 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-// ViewModels
 import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/recipe_viewmodel.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/ingredient_viewmodel.dart';
-
-// Entidades y Tema
 import 'package:laboratorio1u2_27843_app/src/domain/entities/ingredient.dart';
 import 'package:laboratorio1u2_27843_app/src/domain/entities/recipe.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/theme/app_colors.dart';
@@ -20,25 +16,21 @@ class EditRecipeSheet extends StatefulWidget {
 }
 
 class _EditRecipeSheetState extends State<EditRecipeSheet> {
-  // Controladores de texto
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _countryCtrl = TextEditingController();
   final _stepCtrl = TextEditingController();
-  
-  // Controladores para ingredientes
+
   final _qtyCtrl = TextEditingController();
   final _unitCtrl = TextEditingController();
   Ingredient? _selectedIngredient;
 
-  // Listas de datos
   List<Ingredient> _ingredients = [];
   List<String> _steps = [];
 
   @override
   void initState() {
     super.initState();
-    // Cargar datos iniciales si es edición
     if (widget.recipe != null) {
       final r = widget.recipe!;
       _nameCtrl.text = r.name;
@@ -48,7 +40,6 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
       _steps = List.from(r.steps);
     }
 
-    // Cargar ingredientes del ViewModel de forma segura
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         final ingVm = context.read<IngredientViewModel>();
@@ -74,11 +65,9 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Calculamos el espacio del teclado
     final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      // Diseño de hoja de altura completa
       height: MediaQuery.of(context).size.height * 0.95,
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -87,14 +76,9 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ---------------------------------------------------------
-          // 1. ENCABEZADO FIJO (No se mueve con el teclado)
-          // ---------------------------------------------------------
+
           _buildHeader(context),
 
-          // ---------------------------------------------------------
-          // 2. CUERPO DESPLAZABLE (El formulario)
-          // ---------------------------------------------------------
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -114,33 +98,24 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
                   const Divider(thickness: 1, color: Color(0xFFF0F0F0)),
                   const SizedBox(height: 20),
 
-                  // TU SELECTOR DE PRODUCTOS (Mantenido)
                   _buildIngredientsSelector(context),
 
                   const SizedBox(height: 30),
                   const Divider(thickness: 1, color: Color(0xFFF0F0F0)),
                   const SizedBox(height: 20),
 
-                  // SECCIÓN DE PASOS
                   _buildStepsSelector(),
-                  
-                  // Espacio final para que el último elemento no quede oculto por el teclado
+
                   SizedBox(height: keyboardPadding + 80), 
                 ],
               ),
             ),
           ),
-
-          // ---------------------------------------------------------
-          // 3. BOTÓN FLOTANTE FIJO (Siempre visible sobre el teclado)
-          // ---------------------------------------------------------
           _buildBottomActionButton(context, keyboardPadding),
         ],
       ),
     );
   }
-
-  // --- WIDGETS DE DISEÑO ---
 
   Widget _buildHeader(BuildContext context) {
     return Container(
@@ -159,15 +134,13 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
             widget.recipe == null ? "Nueva Receta" : "Editar Receta",
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
           ),
-          const SizedBox(width: 60), // Espacio para equilibrar el botón de cancelar
+          const SizedBox(width: 60),
         ],
       ),
     );
   }
 
   Widget _buildBottomActionButton(BuildContext context, double keyboardPadding) {
-    // Si el teclado está abierto, ocultamos este botón inferior para dar más espacio visual,
-    // o lo dejamos pegado al teclado. Aquí lo dejamos fijo abajo para estabilidad.
     if (keyboardPadding > 0) return const SizedBox.shrink();
 
     return Container(
@@ -228,8 +201,6 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
     );
   }
 
-  // --- LÓGICA DE INGREDIENTES (Tu Dropdown) ---
-
   Widget _buildIngredientsSelector(BuildContext context) {
     return Consumer<IngredientViewModel>(
       builder: (context, ingredientVm, child) {
@@ -249,7 +220,6 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
             ),
             const SizedBox(height: 15),
 
-            // Lista de items agregados
             if (_ingredients.isNotEmpty)
               ..._ingredients.map((ing) => Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
@@ -272,8 +242,7 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
               )),
 
             const SizedBox(height: 15),
-            
-            // Selector y Inputs (Diseño limpio)
+
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -358,10 +327,7 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
       ));
     });
     _qtyCtrl.clear();
-    // No limpiamos la unidad por si agregan varios items similares
   }
-
-  // --- LÓGICA DE PASOS ---
 
   Widget _buildStepsSelector() {
     return Column(
@@ -421,8 +387,6 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
     setState(() => _steps.add(_stepCtrl.text.trim()));
     _stepCtrl.clear();
   }
-
-  // --- GUARDADO ---
 
   void _saveRecipe() {
     if (_nameCtrl.text.isEmpty) return;

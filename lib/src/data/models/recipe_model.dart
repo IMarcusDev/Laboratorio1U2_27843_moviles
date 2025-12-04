@@ -13,14 +13,15 @@ class RecipeModel extends Recipe {
 
   factory RecipeModel.fromJson(Map<String, dynamic> json) {
     return RecipeModel(
-      id: json['id'],
+      id: json['id']?.toString() ?? '', 
       name: json['name'],
       description: json['description'],
       country: json['country'],
-      ingredients: (json['ingredients'] as List)
-          .map((e) => IngredientModel.fromJson(e))
-          .toList(),
-      steps: List<String>.from(json['steps']),
+      ingredients: (json['ingredients'] as List?)
+              ?.map((e) => IngredientModel.fromJson(e))
+              .toList() ??
+          [],
+      steps: List<String>.from(json['steps'] ?? []),
     );
   }
 

@@ -31,8 +31,6 @@ class RecipeViewmodel extends BaseViewModel {
     setLoading(true);
     try {
       _allRecipes = await getRecipesUseCase();
-
-      // reset pagination
       _currentIndex = 0;
       _hasMore = true;
       visibleRecipes = [];
@@ -73,7 +71,7 @@ class RecipeViewmodel extends BaseViewModel {
     _isLoadingMore = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 300)); // UX suave
+    await Future.delayed(const Duration(milliseconds: 300));
 
     _loadMoreInternal();
 

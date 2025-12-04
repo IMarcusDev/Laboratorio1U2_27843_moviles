@@ -55,8 +55,7 @@ class RecipeCard extends StatelessWidget {
             ),
     
             const SizedBox(height: 12),
-    
-            // Nombre
+
             Text(
               recipe.name.isNotEmpty ? recipe.name : "Sin nombre",
               maxLines: 2,
@@ -70,8 +69,7 @@ class RecipeCard extends StatelessWidget {
             ),
     
             const SizedBox(height: 8),
-    
-            // Descripción
+
             Expanded(
               child: Text(
                 recipe.description.isNotEmpty ? recipe.description : "Sin descripción disponible.",
@@ -86,11 +84,9 @@ class RecipeCard extends StatelessWidget {
             ),
     
             const SizedBox(height: 12),
-            
-            // Línea divisora sutil
+
             Divider(color: Colors.grey.shade100, height: 20),
-    
-            // Footer
+
             Row(
               children: [
                 const Icon(Icons.egg_rounded, size: 16, color: AppColors.accent),
