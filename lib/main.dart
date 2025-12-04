@@ -7,6 +7,7 @@ import 'package:laboratorio1u2_27843_app/src/domain/usecases/get_recipes_usecase
 import 'package:laboratorio1u2_27843_app/src/domain/usecases/update_recipe_usecase.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/routes/app_routes.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/theme/app_theme.dart';
+import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/ingredient_viewmodel.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/recipe_viewmodel.dart';
 import 'package:provider/provider.dart';
 
@@ -52,6 +53,9 @@ class MyApp extends StatelessWidget {
             updateUsecase,
             deleteUsecase,
           )..cargarRecetas(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => IngredientViewModel()..loadIngredients(),
         ),
       ],
       child: MaterialApp(

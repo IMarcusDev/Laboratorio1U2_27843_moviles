@@ -1,7 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:laboratorio1u2_27843_app/src/domain/entities/recipe.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/theme/app_colors.dart';
-import 'package:laboratorio1u2_27843_app/src/presentation/widgets/fade_in.dart';
 
 class RecipeCard extends StatelessWidget {
   final Recipe recipe;
@@ -17,85 +16,98 @@ class RecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FadeIn(
-      delay: delay ?? Duration.zero,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-            boxShadow: [AppColors.softShadow],
-          ),
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header (País)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(31),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  recipe.country,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border.withOpacity(0.6)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.08),
+              offset: const Offset(0, 8),
+              blurRadius: 16,
+            )
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Badge de País
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
               ),
-
-              const SizedBox(height: 10),
-
-              // Nombre
-              Text(
-                recipe.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              child: Text(
+                recipe.country.isEmpty ? "INTERNACIONAL" : recipe.country.toUpperCase(),
                 style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+                  fontSize: 10,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
                 ),
               ),
-
-              const SizedBox(height: 8),
-
-              // Descripción
-              Text(
-                recipe.description,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+            ),
+    
+            const SizedBox(height: 12),
+    
+            // Nombre
+            Text(
+              recipe.name.isNotEmpty ? recipe.name : "Sin nombre",
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+                height: 1.2,
+              ),
+            ),
+    
+            const SizedBox(height: 8),
+    
+            // Descripción
+            Expanded(
+              child: Text(
+                recipe.description.isNotEmpty ? recipe.description : "Sin descripción disponible.",
+                maxLines: 4,
+                overflow: TextOverflow.fade,
                 style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textSecondary,
+                  color: AppColors.textSecondary.withOpacity(0.8),
+                  height: 1.4,
                 ),
               ),
-
-              const Spacer(),
-
-              // Footer - cantidad de ingredientes
-              Row(
-                children: [
-                  const Icon(Icons.restaurant_menu_rounded,
-                      size: 18, color: AppColors.primary),
-                  const SizedBox(width: 6),
-                  Text(
-                    "${recipe.ingredients.length} ingredientes",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+            ),
+    
+            const SizedBox(height: 12),
+            
+            // Línea divisora sutil
+            Divider(color: Colors.grey.shade100, height: 20),
+    
+            // Footer
+            Row(
+              children: [
+                const Icon(Icons.egg_rounded, size: 16, color: AppColors.accent),
+                const SizedBox(width: 6),
+                Text(
+                  "${recipe.ingredients.length} ingredientes",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              )
-            ],
-          ),
+                ),
+                const Spacer(),
+                const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.border),
+              ],
+            )
+          ],
         ),
       ),
     );

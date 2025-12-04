@@ -1,7 +1,11 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+// ViewModels
 import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/recipe_viewmodel.dart';
+import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/ingredient_viewmodel.dart';
+
+// Entidades y Tema
 import 'package:laboratorio1u2_27843_app/src/domain/entities/ingredient.dart';
 import 'package:laboratorio1u2_27843_app/src/domain/entities/recipe.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/theme/app_colors.dart';
@@ -16,286 +20,428 @@ class EditRecipeSheet extends StatefulWidget {
 }
 
 class _EditRecipeSheetState extends State<EditRecipeSheet> {
-  // Controllers principales
+  // Controladores de texto
   final _nameCtrl = TextEditingController();
-  final _descriptionCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
   final _countryCtrl = TextEditingController();
-
-  // Ingredientes dinÃ¡micos
-  List<Ingredient> _ingredients = [];
-
-  // Pasos dinÃ¡micos
-  List<String> _steps = [];
   final _stepCtrl = TextEditingController();
+  
+  // Controladores para ingredientes
+  final _qtyCtrl = TextEditingController();
+  final _unitCtrl = TextEditingController();
+  Ingredient? _selectedIngredient;
+
+  // Listas de datos
+  List<Ingredient> _ingredients = [];
+  List<String> _steps = [];
 
   @override
   void initState() {
     super.initState();
-
+    // Cargar datos iniciales si es edición
     if (widget.recipe != null) {
       final r = widget.recipe!;
       _nameCtrl.text = r.name;
-      _descriptionCtrl.text = r.description;
+      _descCtrl.text = r.description;
       _countryCtrl.text = r.country;
       _ingredients = List.from(r.ingredients);
       _steps = List.from(r.steps);
     }
+
+    // Cargar ingredientes del ViewModel de forma segura
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final ingVm = context.read<IngredientViewModel>();
+        if (ingVm.ingredients.isEmpty) {
+          ingVm.loadIngredients();
+        }
+      } catch (e) {
+        debugPrint("Error cargando ingredientes: $e");
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _descCtrl.dispose();
+    _countryCtrl.dispose();
+    _stepCtrl.dispose();
+    _qtyCtrl.dispose();
+    _unitCtrl.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.read<RecipeViewmodel>();
+    // Calculamos el espacio del teclado
+    final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.85,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
-      builder: (context, scrollController) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    return Container(
+      // Diseño de hoja de altura completa
+      height: MediaQuery.of(context).size.height * 0.95,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ---------------------------------------------------------
+          // 1. ENCABEZADO FIJO (No se mueve con el teclado)
+          // ---------------------------------------------------------
+          _buildHeader(context),
+
+          // ---------------------------------------------------------
+          // 2. CUERPO DESPLAZABLE (El formulario)
+          // ---------------------------------------------------------
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  _buildSectionTitle("Información Básica"),
+                  const SizedBox(height: 15),
+                  _buildTextField(label: "Nombre del plato", controller: _nameCtrl, icon: Icons.restaurant_menu),
+                  const SizedBox(height: 15),
+                  _buildTextField(label: "Descripción", controller: _descCtrl, maxLines: 3, icon: Icons.description_outlined),
+                  const SizedBox(height: 15),
+                  _buildTextField(label: "País de origen", controller: _countryCtrl, icon: Icons.flag_outlined),
+
+                  const SizedBox(height: 30),
+                  const Divider(thickness: 1, color: Color(0xFFF0F0F0)),
+                  const SizedBox(height: 20),
+
+                  // TU SELECTOR DE PRODUCTOS (Mantenido)
+                  _buildIngredientsSelector(context),
+
+                  const SizedBox(height: 30),
+                  const Divider(thickness: 1, color: Color(0xFFF0F0F0)),
+                  const SizedBox(height: 20),
+
+                  // SECCIÓN DE PASOS
+                  _buildStepsSelector(),
+                  
+                  // Espacio final para que el último elemento no quede oculto por el teclado
+                  SizedBox(height: keyboardPadding + 80), 
+                ],
+              ),
+            ),
           ),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+
+          // ---------------------------------------------------------
+          // 3. BOTÓN FLOTANTE FIJO (Siempre visible sobre el teclado)
+          // ---------------------------------------------------------
+          _buildBottomActionButton(context, keyboardPadding),
+        ],
+      ),
+    );
+  }
+
+  // --- WIDGETS DE DISEÑO ---
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar", style: TextStyle(color: Colors.grey, fontSize: 16)),
+          ),
+          Text(
+            widget.recipe == null ? "Nueva Receta" : "Editar Receta",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+          ),
+          const SizedBox(width: 60), // Espacio para equilibrar el botón de cancelar
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomActionButton(BuildContext context, double keyboardPadding) {
+    // Si el teclado está abierto, ocultamos este botón inferior para dar más espacio visual,
+    // o lo dejamos pegado al teclado. Aquí lo dejamos fijo abajo para estabilidad.
+    if (keyboardPadding > 0) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))
+        ],
+      ),
+      child: SafeArea(
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 0,
+          ),
+          onPressed: _saveRecipe,
+          child: Text(
+            widget.recipe == null ? "CREAR RECETA" : "GUARDAR CAMBIOS",
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    int maxLines = 1,
+    IconData? icon,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      textCapitalization: TextCapitalization.sentences,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: icon != null ? Icon(icon, size: 20, color: Colors.grey) : null,
+        filled: true,
+        fillColor: const Color(0xFFFAFAFA),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+    );
+  }
+
+  // --- LÓGICA DE INGREDIENTES (Tu Dropdown) ---
+
+  Widget _buildIngredientsSelector(BuildContext context) {
+    return Consumer<IngredientViewModel>(
+      builder: (context, ingredientVm, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-
-                Text(
-                  widget.recipe == null ? "Nueva Receta" : "Editar Receta",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                _buildField("Nombre", _nameCtrl),
-                _buildField("DescripciÃ³n", _descriptionCtrl, maxLines: 3),
-                _buildField("PaÃ­s", _countryCtrl),
-
-                const SizedBox(height: 20),
-                _buildIngredientsSection(),
-                const SizedBox(height: 20),
-                _buildStepsSection(),
-
-                const SizedBox(height: 20),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    onPressed: () {
-                      final newRecipe = Recipe(
-                        id: widget.recipe?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                        name: _nameCtrl.text,
-                        description: _descriptionCtrl.text,
-                        country: _countryCtrl.text,
-                        ingredients: _ingredients,
-                        steps: _steps,
-                      );
-
-                      if (widget.recipe == null) {
-                        vm.agregarRecetas(newRecipe);
-                      } else {
-                        vm.actualizarProducto(widget.recipe!.id, newRecipe);
-                      }
-
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      widget.recipe == null ? "Crear" : "Guardar Cambios",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
+                _buildSectionTitle("Ingredientes"),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                  child: Text("${_ingredients.length} items", style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 15),
+
+            // Lista de items agregados
+            if (_ingredients.isNotEmpty)
+              ..._ingredients.map((ing) => Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFFEEEEEE)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    title: Text(ing.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text("${ing.quantity} ${ing.unit}"),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.grey, size: 18),
+                      onPressed: () => setState(() => _ingredients.remove(ing)),
+                    ),
+                  ),
+                ),
+              )),
+
+            const SizedBox(height: 15),
+            
+            // Selector y Inputs (Diseño limpio)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FA),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE0E0E0)),
+              ),
+              child: Column(
+                children: [
+                  DropdownButtonFormField<Ingredient>(
+                    isExpanded: true,
+                    value: _selectedIngredient,
+                    hint: const Text("Selecciona un producto"),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                    items: ingredientVm.ingredients.map((ing) {
+                      return DropdownMenuItem(value: ing, child: Text(ing.name));
+                    }).toList(),
+                    onChanged: (val) => setState(() => _selectedIngredient = val),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _qtyCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            hintText: "Cantidad",
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: _unitCtrl,
+                          decoration: InputDecoration(
+                            hintText: "Unidad",
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      IconButton.filled(
+                        style: IconButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        onPressed: _addIngredient,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // UI HELPERS
-  // ---------------------------------------------------------------------------
-
-  Widget _buildField(String label, TextEditingController controller, {int maxLines = 1}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-        const SizedBox(height: 6),
-        TextField(
-          controller: controller,
-          maxLines: maxLines,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-      ],
-    );
+  void _addIngredient() {
+    if (_selectedIngredient == null || _qtyCtrl.text.isEmpty || _unitCtrl.text.isEmpty) return;
+    
+    setState(() {
+      _ingredients.add(Ingredient(
+        id: _selectedIngredient!.id,
+        name: _selectedIngredient!.name,
+        description: _selectedIngredient!.description,
+        calories: _selectedIngredient!.calories,
+        quantity: int.tryParse(_qtyCtrl.text) ?? 0,
+        unit: _unitCtrl.text,
+      ));
+    });
+    _qtyCtrl.clear();
+    // No limpiamos la unidad por si agregan varios items similares
   }
 
-  // ---------------------------------------------------------------------------
-  // INGREDIENTES
-  // ---------------------------------------------------------------------------
-  Widget _buildIngredientsSection() {
-    final nameCtrl = TextEditingController();
-    final qtyCtrl = TextEditingController();
-    final unitCtrl = TextEditingController();
+  // --- LÓGICA DE PASOS ---
 
+  Widget _buildStepsSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Ingredientes",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
-
-        for (int i = 0; i < _ingredients.length; i++)
-          Card(
-            child: ListTile(
-              title: Text("${_ingredients[i].quantity} ${_ingredients[i].unit} - ${_ingredients[i].name}"),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () {
-                  setState(() => _ingredients.removeAt(i));
-                },
-              ),
+        _buildSectionTitle("Pasos de preparación"),
+        const SizedBox(height: 15),
+        
+        if (_steps.isNotEmpty)
+          ..._steps.asMap().entries.map((entry) => Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(radius: 12, backgroundColor: AppColors.primary, child: Text("${entry.key + 1}", style: const TextStyle(fontSize: 12, color: Colors.white))),
+                const SizedBox(width: 10),
+                Expanded(child: Text(entry.value, style: const TextStyle(fontSize: 15))),
+                GestureDetector(
+                  onTap: () => setState(() => _steps.removeAt(entry.key)),
+                  child: const Icon(Icons.close, color: Colors.grey, size: 18),
+                ),
+              ],
             ),
-          ),
+          )),
 
-        const SizedBox(height: 12),
-
-        _buildField("Ingrediente", nameCtrl),
+        const SizedBox(height: 10),
         Row(
           children: [
-            Expanded(child: _buildField("Cantidad", qtyCtrl)),
-            const SizedBox(width: 12),
-            Expanded(child: _buildField("Unidad", unitCtrl)),
+            Expanded(
+              child: TextField(
+                controller: _stepCtrl,
+                textCapitalization: TextCapitalization.sentences,
+                onSubmitted: (_) => _addStep(),
+                decoration: InputDecoration(
+                  hintText: "Escribe el siguiente paso...",
+                  filled: true,
+                  fillColor: const Color(0xFFF8F9FA),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filled(
+              onPressed: _addStep,
+              style: IconButton.styleFrom(backgroundColor: AppColors.primary),
+              icon: const Icon(Icons.arrow_upward, color: Colors.white),
+            ),
           ],
         ),
-
-        Align(
-          alignment: Alignment.centerRight,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              if (nameCtrl.text.isEmpty || qtyCtrl.text.isEmpty || unitCtrl.text.isEmpty) { return; }
-
-              setState(() {
-                _ingredients.add(
-                  Ingredient(
-                    name: nameCtrl.text,
-                    quantity: int.tryParse(qtyCtrl.text) ?? 0,
-                    unit: unitCtrl.text,
-                  ),
-                );
-              });
-
-              nameCtrl.clear();
-              qtyCtrl.clear();
-              unitCtrl.clear();
-            },
-            icon: const Icon(Icons.add),
-            label: const Text("Agregar ingrediente"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ),
       ],
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // PASOS
-  // ---------------------------------------------------------------------------
-  Widget _buildStepsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("Pasos",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
+  void _addStep() {
+    if (_stepCtrl.text.trim().isEmpty) return;
+    setState(() => _steps.add(_stepCtrl.text.trim()));
+    _stepCtrl.clear();
+  }
 
-        for (int i = 0; i < _steps.length; i++)
-          Card(
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: AppColors.primary,
-                child: Text("${i + 1}", style: const TextStyle(color: Colors.white)),
-              ),
-              title: Text(_steps[i]),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () => setState(() => _steps.removeAt(i)),
-              ),
-            ),
-          ),
+  // --- GUARDADO ---
 
-        const SizedBox(height: 12),
+  void _saveRecipe() {
+    if (_nameCtrl.text.isEmpty) return;
 
-        TextField(
-          controller: _stepCtrl,
-          maxLines: 2,
-          decoration: InputDecoration(
-            hintText: "Nuevo paso...",
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-
-        Align(
-          alignment: Alignment.centerRight,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              if (_stepCtrl.text.isEmpty) { return; }
-
-              setState(() => _steps.add(_stepCtrl.text));
-              _stepCtrl.clear();
-            },
-            icon: const Icon(Icons.add),
-            label: const Text("Agregar paso"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ),
-      ],
+    final vm = context.read<RecipeViewmodel>();
+    final newRecipe = Recipe(
+      id: widget.recipe?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      name: _nameCtrl.text,
+      description: _descCtrl.text,
+      country: _countryCtrl.text,
+      ingredients: _ingredients,
+      steps: _steps,
     );
+
+    if (widget.recipe == null) {
+      vm.agregarRecetas(newRecipe);
+    } else {
+      vm.actualizarProducto(widget.recipe!.id, newRecipe);
+    }
+    Navigator.pop(context);
   }
 }
-
-

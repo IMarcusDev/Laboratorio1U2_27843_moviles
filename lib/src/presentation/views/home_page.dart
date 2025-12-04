@@ -3,7 +3,6 @@ import 'package:laboratorio1u2_27843_app/src/presentation/theme/app_colors.dart'
 import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/recipe_viewmodel.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/widgets/edit_recipe_sheet.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/widgets/recipe_card.dart';
-import 'package:laboratorio1u2_27843_app/src/presentation/widgets/fade_in.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/widgets/loading_shimmer.dart';
 import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
@@ -36,57 +35,53 @@ class _HomePageState extends State<HomePage> {
         icon: const Icon(Icons.add_rounded),
         label: const Text("Nuevo", style: TextStyle(fontWeight: FontWeight.bold)),
       ),
-      body: FadeIn(
-        child: RefreshIndicator(
-          onRefresh: vm.cargarRecetas,
-          color: AppColors.primary,
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 120.0,
-                floating: false,
-                pinned: true,
-                flexibleSpace: const FlexibleSpaceBar(
-                  titlePadding: EdgeInsets.only(left: 20, bottom: 16),
-                  title: Text(
-                    'Recetario',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w900,
-                    ),
+      // SE ELIMINÓ EL FadeIn AQUÍ PARA MEJORAR RENDIMIENTO
+      body: RefreshIndicator(
+        onRefresh: vm.cargarRecetas,
+        color: AppColors.primary,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 120.0,
+              floating: false,
+              pinned: true,
+              flexibleSpace: const FlexibleSpaceBar(
+                titlePadding: EdgeInsets.only(left: 20, bottom: 16),
+                title: Text(
+                  'Recetario',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-                actions: [
-                  IconButton(
-                    onPressed: () => setState(() => _isGrid = !_isGrid),
-                    icon: Icon(_isGrid ? Icons.view_list_rounded : Icons.grid_view_rounded),
-                    tooltip: _isGrid ? 'Ver como lista' : 'Ver como grid',
-                  ),
-                ],
               ),
-
-              // Loader inicial -> Shimmer o Lottie
-              if (vm.loading)
-                SliverFillRemaining(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    child: LoadingShimmer(isGrid: _isGrid),
-                  ),
-                )
-
-              else if (vm.visibleRecipes.isEmpty)
-                SliverFillRemaining(
-                  child: _buildEmptyState(),
-                )
-
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.all(20),
-                  sliver: _isGrid ? _buildGrid(vm) : _buildList(vm),
+              actions: [
+                IconButton(
+                  onPressed: () => setState(() => _isGrid = !_isGrid),
+                  icon: Icon(_isGrid ? Icons.view_list_rounded : Icons.grid_view_rounded),
+                  tooltip: _isGrid ? 'Ver como lista' : 'Ver como grid',
                 ),
-            ],
-          ),
+              ],
+            ),
+
+            if (vm.loading)
+              SliverFillRemaining(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 0),
+                  child: LoadingShimmer(isGrid: _isGrid),
+                ),
+              )
+            else if (vm.visibleRecipes.isEmpty)
+              SliverFillRemaining(
+                child: _buildEmptyState(),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.all(20),
+                sliver: _isGrid ? _buildGrid(vm) : _buildList(vm),
+              ),
+          ],
         ),
       ),
     );

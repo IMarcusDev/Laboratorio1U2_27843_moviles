@@ -1,201 +1,211 @@
-// server.js
 const express = require('express');
 const bodyParser = require('body-parser');
+const admin = require('firebase-admin');
+
+const serviceAccount = require('./serviceAccountKey.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const db = admin.firestore();
+const recetasCol = db.collection('recetas');
+const ingredientesCol = db.collection('ingredientes');
 
 const app = express();
 app.use(bodyParser.json());
 
-/*
-  {
-    id,
-    name,
-    description,
-    country,
-    ingredients: [{ name, quantity, unit }],
-    steps: [ ]
-  }
-*/
 
-// Sample Data
-const recetas = [
+const ingredientesBase = [
+  { name: "Camarones", description: "Marisco fresco de la costa", calories: 99 },
+  { name: "Cebolla", description: "Cebolla colorada fresca", calories: 40 },
+  { name: "Tomate", description: "Tomate riñón jugoso", calories: 18 },
+  { name: "Limón", description: "Limón sutil ácido", calories: 29 },
+  { name: "Cilantro", description: "Hierba aromática fresca", calories: 23 },
+  { name: "Yuca", description: "Tubérculo suave y almidonado", calories: 160 },
+  { name: "Atún", description: "Pescado azul fresco (Albacora)", calories: 130 },
+  { name: "Cerdo", description: "Carne de cerdo (Pierna o Lomo)", calories: 242 },
+  { name: "Ajo", description: "Dientes de ajo frescos", calories: 149 },
+  { name: "Mote", description: "Maíz blanco cocido", calories: 120 },
+  { name: "Bacalao Seco", description: "Pescado salado y seco", calories: 290 },
+  { name: "Frejol", description: "Granos tiernos", calories: 347 },
+  { name: "Zapallo", description: "Calabaza ecuatoriana cremosa", calories: 26 },
+  { name: "Leche", description: "Leche entera pasteurizada", calories: 60 },
+  { name: "Papas", description: "Papa chola o superchola", calories: 77 },
+  { name: "Queso Fresco", description: "Queso de mesa tradicional", calories: 260 },
+  { name: "Maní", description: "Pasta de maní tostado", calories: 567 },
+  { name: "Plátano Verde", description: "Plátano macho verde", calories: 122 }
+];
+
+const recetasBase = [
   {
-    id: "60048a393469f246b699",
     name: "Ceviche de Camarón",
-    description: "Delicioso ceviche de camarón con limón, tomate y cebolla, típico de la costa ecuatoriana.",
+    description: "Ceviche tradicional con salsa de tomate, limón y cebolla curtida.",
     country: "Ecuador",
     ingredients: [
       { name: "Camarones", quantity: 500, unit: "g" },
-      { name: "Cebolla", quantity: 1, unit: "unidad" },
-      { name: "Tomate", quantity: 2, unit: "unidades" },
-      { name: "Limón", quantity: 5, unit: "unidades" },
-      { name: "Cilantro", quantity: 1, unit: "puñado" },
-      { name: "Sal", quantity: 1, unit: "cucharadita" },
-      { name: "Pimienta", quantity: 1, unit: "cucharadita" }
-    ],
-    steps: [
-      "Cocer los camarones hasta que estén rosados.",
-      "Picar la cebolla y el tomate en cubos pequeños.",
-      "Mezclar los camarones con la cebolla, tomate y cilantro.",
-      "Agregar jugo de limón, sal y pimienta al gusto.",
-      "Dejar reposar 10 minutos antes de servir."
-    ]
-  },
-  {
-    id: "1db6c36508271466dbba",
-    name: "Encebollado",
-    description: "Sopa de pescado y yuca con cebolla encurtida, muy popular en la costa ecuatoriana.",
-    country: "Ecuador",
-    ingredients: [
-      { name: "Atún fresco", quantity: 400, unit: "g" },
-      { name: "Yuca", quantity: 500, unit: "g" },
-      { name: "Cebolla", quantity: 1, unit: "unidad" },
-      { name: "Tomate", quantity: 2, unit: "unidades" },
-      { name: "Jugo de limón", quantity: 2, unit: "cucharadas" },
-      { name: "Cilantro", quantity: 1, unit: "puñado" },
-      { name: "Sal y pimienta", quantity: 1, unit: "al gusto" }
-    ],
-    steps: [
-      "Cocer el pescado y reservar el caldo.",
-      "Hervir la yuca hasta que esté blanda y cortarla en trozos.",
-      "Mezclar el caldo con tomate y cebolla picados.",
-      "Agregar el pescado y la yuca al caldo.",
-      "Servir con cilantro y jugo de limón."
-    ]
-  },
-  {
-    id: "763c47c2b4dce60770bb",
-    name: "Hornado",
-    description: "Cerdo asado al horno, típico de la sierra ecuatoriana, acompañado de mote y llapingachos.",
-    country: "Ecuador",
-    ingredients: [
-      { name: "Cerdo", quantity: 2, unit: "kg" },
-      { name: "Ajo", quantity: 4, unit: "dientes" },
       { name: "Cebolla", quantity: 2, unit: "unidades" },
-      { name: "Comino", quantity: 1, unit: "cucharadita" },
-      { name: "Sal y pimienta", quantity: 1, unit: "al gusto" },
-      { name: "Mote cocido", quantity: 500, unit: "g" },
-      { name: "Llapingachos", quantity: 6, unit: "unidades" }
+      { name: "Tomate", quantity: 3, unit: "unidades" },
+      { name: "Limón", quantity: 10, unit: "unidades" },
+      { name: "Cilantro", quantity: 1, unit: "atado" }
     ],
     steps: [
-      "Frotar el cerdo con ajo, cebolla, comino, sal y pimienta.",
-      "Hornear a 180°C durante 3 horas hasta que esté dorado.",
-      "Preparar los llapingachos y el mote.",
-      "Servir el cerdo acompañado de mote y llapingachos."
+      "Pelar y limpiar los camarones.",
+      "Hervir las cáscaras de camarón para hacer un fondo.",
+      "Cocinar los camarones en el fondo hirviendo por 3 minutos.",
+      "Picar la cebolla en pluma y curtirla con limón y sal.",
+      "Rallar o licuar los tomates y mezclarlos con mostaza y el fondo frío.",
+      "Mezclar todo y agregar cilantro picado al final."
     ]
   },
   {
-    id: "c7301d2d795ad321d869",
+    name: "Encebollado",
+    description: "Sopa de pescado (albacora) con yuca y cebolla, ideal para el desayuno.",
+    country: "Ecuador",
+    ingredients: [
+      { name: "Atún", quantity: 2, unit: "lb" },
+      { name: "Yuca", quantity: 3, unit: "lb" },
+      { name: "Cebolla", quantity: 2, unit: "unidades" },
+      { name: "Cilantro", quantity: 1, unit: "atado" },
+      { name: "Ajo", quantity: 3, unit: "dientes" }
+    ],
+    steps: [
+      "Hacer un refrito con cebolla, tomate, pimiento y comino.",
+      "Cocinar la albacora en agua con el refrito y cilantro.",
+      "Separar el pescado y cocinar la yuca en ese mismo caldo.",
+      "Licuar una parte de la yuca cocinada con el caldo para espesar.",
+      "Servir la yuca picada, el pescado en láminas y la cebolla curtida encima."
+    ]
+  },
+  {
     name: "Fanesca",
-    description: "Sopa tradicional ecuatoriana de Semana Santa, hecha con granos, pescado seco y verduras.",
+    description: "Sopa densa a base de granos tiernos y pescado seco, típica de Semana Santa.",
     country: "Ecuador",
     ingredients: [
-      { name: "Bacalao seco", quantity: 500, unit: "g" },
-      { name: "Frejol", quantity: 100, unit: "g" },
-      { name: "Choclo", quantity: 100, unit: "g" },
-      { name: "Zapallo", quantity: 200, unit: "g" },
+      { name: "Bacalao Seco", quantity: 1, unit: "lb" },
+      { name: "Frejol", quantity: 1, unit: "lb" },
+      { name: "Zapallo", quantity: 500, unit: "g" },
       { name: "Leche", quantity: 1, unit: "litro" },
-      { name: "Cebolla", quantity: 1, unit: "unidad" },
-      { name: "Ajo", quantity: 2, unit: "dientes" },
-      { name: "Huevos duros", quantity: 4, unit: "unidades" },
-      { name: "Aceitunas negras", quantity: 12, unit: "unidades" }
+      { name: "Maní", quantity: 200, unit: "g" }
     ],
     steps: [
-      "Remojar el bacalao y hervirlo.",
-      "Cocer los granos por separado hasta que estén tiernos.",
-      "Hacer un sofrito con cebolla, ajo y zapallo.",
-      "Agregar los granos y el bacalao al sofrito, luego la leche.",
-      "Servir caliente con huevo duro y aceitunas."
+      "Desalar el bacalao en agua desde la noche anterior.",
+      "Cocinar todos los granos por separado hasta que estén suaves.",
+      "Hacer un refrito con cebolla blanca y achiote.",
+      "Licuar el zapallo cocinado con leche y maní.",
+      "Mezclar el refrito, el licuado y los granos en una olla grande.",
+      "Cocinar a fuego lento y añadir el bacalao al final."
     ]
   },
   {
-    id: "c419fa44cd17ad3e48ac",
     name: "Llapingachos",
-    description: "Tortillas de papa rellenas de queso, típicas de la sierra ecuatoriana.",
+    description: "Tortillas de papa rellenas de queso, acompañadas de salsa de maní.",
     country: "Ecuador",
     ingredients: [
-      { name: "Papas", quantity: 500, unit: "g" },
-      { name: "Queso fresco", quantity: 150, unit: "g" },
-      { name: "Aceite", quantity: 3, unit: "cucharadas" },
-      { name: "Sal", quantity: 1, unit: "cucharadita" }
+      { name: "Papas", quantity: 5, unit: "lb" },
+      { name: "Queso Fresco", quantity: 1, unit: "lb" },
+      { name: "Cebolla", quantity: 1, unit: "unidad" },
+      { name: "Maní", quantity: 100, unit: "g" }
     ],
     steps: [
-      "Hervir las papas y hacer un puré.",
-      "Formar bolitas de puré y rellenarlas con queso.",
-      "Aplanar las bolitas para formar tortitas.",
-      "Freír en aceite hasta que estén doradas por ambos lados.",
-      "Servir calientes como acompañamiento."
+      "Cocinar las papas peladas en agua con sal hasta que estén suaves.",
+      "Aplastar las papas calientes hasta obtener un puré sin grumos.",
+      "Hacer un refrito de cebolla blanca y mezclar con el puré.",
+      "Formar bolas, rellenar el centro con queso y aplanar.",
+      "Dorar las tortillas en una plancha o sartén con poco aceite."
     ]
   }
 ];
 
-app.get('/api/recetas', (req, res) => {
-  res.json(recetas);
+app.get('/api/ingredientes', async (req, res) => {
+  try {
+    const snapshot = await ingredientesCol.orderBy('name').get();
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.get('/api/recetas/:pais', (req, res) => {
-  const { pais } = req.params;
+app.post('/api/ingredientes', async (req, res) => {
+  try {
+    const docRef = await ingredientesCol.add(req.body);
+    res.status(201).json({ id: docRef.id, ...req.body });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
-  const recetasFiltradas = recetas.filter(r => 
-    r.country.toLowerCase() === pais.toLowerCase()
-  );
+app.put('/api/ingredientes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    delete data.id; 
+    
+    const docRef = ingredientesCol.doc(id);
+    await docRef.update(data);
+    
+    res.json({ id, ...data });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
-  if (recetasFiltradas.length === 0) {
-    return res.status(404).json({ message: `No se encontraron recetas para el país: ${pais}` });
-  }
+app.delete('/api/ingredientes/:id', async (req, res) => {
+  try {
+    await ingredientesCol.doc(req.params.id).delete();
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
-  res.json(recetasFiltradas);
+app.get('/api/recetas', async (req, res) => {
+  try {
+    const snapshot = await recetasCol.get();
+    res.json(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/recetas', async (req, res) => {
+  try {
+    const docRef = await recetasCol.add(req.body);
+    res.status(201).json({ id: docRef.id, ...req.body });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/recetas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    delete data.id; 
+    await recetasCol.doc(id).update(data);
+    res.json({ id, ...data });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/recetas/:id', async (req, res) => {
+  try {
+    await recetasCol.doc(req.params.id).delete();
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 
-app.post('/api/recetas', (req, res) => {
-  const { name, description, country, ingredients, steps } = req.body;
+app.post('/api/poblar', async (req, res) => {
+  try {
+    const batch = db.batch();
 
-  // Validación básica
-  if (!name || !description || !country || !Array.isArray(ingredients) || !Array.isArray(steps)) {
-    return res.status(400).json({ message: 'Name, description, country, ingredients and steps are required' });
-  }
+    ingredientesBase.forEach(ing => {
+      const ref = ingredientesCol.doc();
+      batch.set(ref, ing);
+    });
 
-  const newReceta = {
-    id: Date.now(), // ID simple
-    name,
-    description,
-    country,
-    ingredients,
-    steps
-  };
+    recetasBase.forEach(receta => {
+      const ref = recetasCol.doc();
+      batch.set(ref, receta);
+    });
 
-  recetas.push(newReceta);
-  res.status(201).json(newReceta);
+    await batch.commit();
+    res.json({ 
+      message: 'Base de datos poblada con éxito',
+      ingredientes: ingredientesBase.length,
+      recetas: recetasBase.length
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
-
-app.put('/api/recetas/:id', (req, res) => {
-  const { id } = req.params;
-  const { name, description, country, ingredients, steps } = req.body;
-
-  const i = recetas.findIndex(r => r.id === id);
-  if (i === -1) return res.status(404).json({ message: 'Receta not found' });
-
-  if (name) recetas[i].name = name;
-  if (description) recetas[i].description = description;
-  if (country) recetas[i].country = country;
-  if (Array.isArray(ingredients)) recetas[i].ingredients = ingredients;
-  if (Array.isArray(steps)) recetas[i].steps = steps;
-
-  res.json(recetas[i]);
-});
-
-app.delete('/api/recetas/:id', (req, res) => {
-  const { id } = req.params;
-  const index = recetas.findIndex(r => r.id === id);
-
-  if (index === -1) return res.status(404).json({ message: 'Receta not found' });
-
-  const deleted = recetas.splice(index, 1);
-  res.json(deleted[0]);
-});
-
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Recetas API running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`API running on port ${PORT}`));
