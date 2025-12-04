@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/theme/app_colors.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/views/home_page.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/views/ingredients_page.dart';
+import 'package:laboratorio1u2_27843_app/src/presentation/views/profile_page.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -15,7 +16,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _pages = [
     const HomePage(),
     const IngredientsPage(),
-    const Center(child: Text("Perfil (Próximamente)", style: TextStyle(fontSize: 18, color: AppColors.textSecondary))),
+    const ProfilePage(),
   ];
 
   @override
