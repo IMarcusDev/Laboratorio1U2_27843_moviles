@@ -1,9 +1,10 @@
-import 'package:laboratorio1u2_27843_app/src/domain/entities/recipe.dart';
+﻿import 'package:laboratorio1u2_27843_app/src/domain/entities/recipe.dart';
 import 'package:laboratorio1u2_27843_app/src/domain/usecases/create_recipe_usecase.dart';
 import 'package:laboratorio1u2_27843_app/src/domain/usecases/delete_recipe_usecase.dart';
 import 'package:laboratorio1u2_27843_app/src/domain/usecases/get_recipes_usecase.dart';
 import 'package:laboratorio1u2_27843_app/src/domain/usecases/update_recipe_usecase.dart';
 import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/base_viewmodel.dart';
+import 'package:flutter/foundation.dart';
 
 class RecipeViewmodel extends BaseViewModel {
   final GetRecipesUseCase getRecipesUseCase;
@@ -38,7 +39,7 @@ class RecipeViewmodel extends BaseViewModel {
 
       _loadMoreInternal();
     } catch (e) {
-      print("Error cargando: $e");
+      debugPrint("Error cargando: $e");
     } finally {
       setLoading(false);
       notifyListeners();
@@ -89,7 +90,7 @@ class RecipeViewmodel extends BaseViewModel {
       await createRecipeUsecase(r);
       await cargarRecetas();
     } catch (e) {
-      print("Error creando: $e");
+      debugPrint("Error creando: $e");
     } finally {
       setLoading(false);
     }
@@ -101,7 +102,7 @@ class RecipeViewmodel extends BaseViewModel {
       await updateRecipesUseCase(id, r);
       await cargarRecetas();
     } catch (e) {
-      print("Error actualizando: $e");
+      debugPrint("Error actualizando: $e");
     } finally {
       setLoading(false);
     }
@@ -113,9 +114,12 @@ class RecipeViewmodel extends BaseViewModel {
       await deleteRecipeUsecase(id);
       await cargarRecetas();
     } catch (e) {
-      print("Error eliminando: $e");
+      debugPrint("Error eliminando: $e");
     } finally {
       setLoading(false);
     }
   }
 }
+
+
+
