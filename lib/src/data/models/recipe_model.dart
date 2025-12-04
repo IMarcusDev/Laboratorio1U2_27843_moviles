@@ -26,7 +26,6 @@ class RecipeModel extends Recipe {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'name': name,
       'description': description,
       'country': country,
