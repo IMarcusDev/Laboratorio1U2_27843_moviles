@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:laboratorio1u2_27843_app/src/presentation/viewmodels/recipe_viewmodel.dart';
@@ -21,10 +21,10 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
   final _descriptionCtrl = TextEditingController();
   final _countryCtrl = TextEditingController();
 
-  // Ingredientes dinámicos
+  // Ingredientes dinÃ¡micos
   List<Ingredient> _ingredients = [];
 
-  // Pasos dinámicos
+  // Pasos dinÃ¡micos
   List<String> _steps = [];
   final _stepCtrl = TextEditingController();
 
@@ -84,8 +84,8 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
                 const SizedBox(height: 20),
 
                 _buildField("Nombre", _nameCtrl),
-                _buildField("Descripción", _descriptionCtrl, maxLines: 3),
-                _buildField("País", _countryCtrl),
+                _buildField("DescripciÃ³n", _descriptionCtrl, maxLines: 3),
+                _buildField("PaÃ­s", _countryCtrl),
 
                 const SizedBox(height: 20),
                 _buildIngredientsSection(),
@@ -205,9 +205,7 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
           alignment: Alignment.centerRight,
           child: ElevatedButton.icon(
             onPressed: () {
-              if (nameCtrl.text.isEmpty ||
-                  qtyCtrl.text.isEmpty ||
-                  unitCtrl.text.isEmpty) return;
+              if (nameCtrl.text.isEmpty || qtyCtrl.text.isEmpty || unitCtrl.text.isEmpty) { return; }
 
               setState(() {
                 _ingredients.add(
@@ -282,7 +280,7 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
           alignment: Alignment.centerRight,
           child: ElevatedButton.icon(
             onPressed: () {
-              if (_stepCtrl.text.isEmpty) return;
+              if (_stepCtrl.text.isEmpty) { return; }
 
               setState(() => _steps.add(_stepCtrl.text));
               _stepCtrl.clear();
@@ -299,3 +297,5 @@ class _EditRecipeSheetState extends State<EditRecipeSheet> {
     );
   }
 }
+
+
