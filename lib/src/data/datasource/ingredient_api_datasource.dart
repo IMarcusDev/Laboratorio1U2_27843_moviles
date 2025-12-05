@@ -4,13 +4,16 @@ import 'package:http/http.dart' as http;
 import 'package:laboratorio1u2_27843_app/src/data/models/ingredient_model.dart';
 
 class IngredientApiDatasource {
+  final http.Client client;
+  IngredientApiDatasource({http.Client? client}) : client = client ?? http.Client();
+
   String get baseUrl {
     return 'https://api-recetas-27843-moviles.onrender.com/api/ingredientes';
   }
 
   Future<List<IngredientModel>> getIngredients() async {
     try {
-      final response = await http.get(Uri.parse(baseUrl));
+      final response = await client.get(Uri.parse(baseUrl));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -25,7 +28,7 @@ class IngredientApiDatasource {
 
   Future<bool> createIngredient(IngredientModel ingredient) async {
     try {
-      final response = await http.post(
+      final response = await client.post(
         Uri.parse(baseUrl),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(ingredient.toJson()),
@@ -39,7 +42,7 @@ class IngredientApiDatasource {
 
   Future<bool> updateIngredient(String id, IngredientModel ingredient) async {
     try {
-      final response = await http.put(
+      final response = await client.put(
         Uri.parse('$baseUrl/$id'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
@@ -57,7 +60,7 @@ class IngredientApiDatasource {
 
   Future<bool> deleteIngredient(String id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/$id'));
+      final response = await client.delete(Uri.parse('$baseUrl/$id'));
       return response.statusCode >= 200 && response.statusCode < 300;
     } catch (e) {
       return false;
